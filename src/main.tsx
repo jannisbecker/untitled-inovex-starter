@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
+import { CalendarPage } from "@/pages/calendar";
 import { HomeScreen } from "@/pages/home-screen";
 import { NotFound } from "@/pages/not-found";
 import { PricingFigmaPage } from "@/pages/pricing-figma";
@@ -16,6 +17,7 @@ createRoot(document.getElementById("root")!).render(
                 <RouteProvider>
                     <Routes>
                         <Route path="/" element={<HomeScreen />} />
+                        <Route path="/calendar" element={<CalendarPage />} />
                         <Route path="/pricing-figma" element={<PricingFigmaPage />} />
                         <Route path="/your-cards" element={<YourCardsPage />} />
                         <Route path="*" element={<NotFound />} />
