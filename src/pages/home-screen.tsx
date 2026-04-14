@@ -1,75 +1,105 @@
-import { BookOpen01, Check, Copy01, Cube01, HelpCircle } from "@untitledui/icons";
+import { useMemo, useState } from "react";
+import { Plus } from "@untitledui/icons";
+import { ChatComposer } from "@/components/application/chat/chat-composer";
+import { ChatMessageList } from "@/components/application/chat/chat-message-list";
+import { ChatSidebar } from "@/components/application/chat/chat-sidebar";
 import { Button } from "@/components/base/buttons/button";
-import { ButtonUtility } from "@/components/base/buttons/button-utility";
-import { UntitledLogoMinimal } from "@/components/foundations/logo/untitledui-logo-minimal";
-import { useClipboard } from "@/hooks/use-clipboard";
+import { useChatHistory } from "@/hooks/use-chat-history";
+import type { ChatMessage } from "@/types/chat";
+import { requestChatCompletionWithFallback } from "@/utils/chat-client";
+import { cx } from "@/utils/cx";
 
 export const HomeScreen = () => {
-    const clipboard = useClipboard();
+    const [draft, setDraft] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const { sessions, activeSession, activeChatId, setActiveChatId, createSession, appendMessage, createChatAndAppend } = useChatHistory();
+
+    const hasMessages = Boolean(activeSession?.messages.length);
+
+    const activeMessages = useMemo(() => activeSession?.messages ?? [], [activeSession]);
+
+    const createId = () => {
+        if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+            return crypto.randomUUID();
+        }
+
+        return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    };
+
+    const submitMessage = async () => {
+        const content = draft.trim();
+
+        if (!content || isLoading) {
+            return;
+        }
+
+        setDraft("");
+
+        const userMessage: ChatMessage = {
+            id: createId(),
+            role: "user",
+            content,
+            createdAt: new Date().toISOString(),
+        };
+
+        let targetSessionId = activeChatId;
+
+        if (!targetSessionId) {
+            targetSessionId = createChatAndAppend(userMessage);
+        } else {
+            appendMessage(targetSessionId, userMessage);
+        }
+
+        setIsLoading(true);
+
+        try {
+            const assistantMessage = await requestChatCompletionWithFallback([...(activeSession?.messages ?? []), userMessage]);
+            appendMessage(targetSessionId, assistantMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
-        <div className="flex h-dvh flex-col">
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4">
-                <div className="relative flex size-28 items-center justify-center">
-                    <UntitledLogoMinimal className="size-10" />
-                </div>
+        <div className="flex h-dvh bg-primary">
+            <ChatSidebar sessions={sessions} activeChatId={activeChatId} onCreateChat={() => createSession()} onSelectChat={setActiveChatId} />
 
-                <h1 className="max-w-3xl text-center text-display-sm font-semibold text-primary">Untitled UI Vite starter kit</h1>
+            <main className="relative flex min-w-0 flex-1 flex-col">
+                {!hasMessages ? (
+                    <div className="mx-auto flex h-full w-full max-w-4xl flex-col items-center justify-center px-6">
+                        <h1 className="text-center text-display-sm font-semibold text-primary">Start a new conversation</h1>
+                        <p className="mt-3 max-w-2xl text-center text-lg text-tertiary">
+                            Build faster with a clean chat workspace. Ask about product ideas, copywriting, or implementation tasks.
+                        </p>
 
-                <p className="mt-2 max-w-xl text-center text-lg text-tertiary">
-                    Get started by using existing components that came with this starter kit or add new ones:
-                </p>
+                        <div className="mt-10 w-full max-w-3xl">
+                            <ChatComposer value={draft} onChange={setDraft} onSubmit={submitMessage} isLoading={isLoading} autoFocus />
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <section className="min-h-0 flex-1 overflow-y-auto px-6">
+                            <ChatMessageList messages={activeMessages} />
+                        </section>
 
-                <div className="relative mt-6 flex h-10 items-center rounded-lg border border-secondary bg-secondary">
-                    <code className="px-3 font-mono text-secondary">npx untitledui@latest add</code>
+                        <section className="border-t border-secondary bg-primary px-6 py-4">
+                            <div className="mx-auto w-full max-w-3xl">
+                                <ChatComposer value={draft} onChange={setDraft} onSubmit={submitMessage} isLoading={isLoading} />
+                            </div>
+                        </section>
+                    </>
+                )}
 
-                    <hr className="h-10 w-px bg-border-secondary" />
-
-                    <ButtonUtility
-                        color="tertiary"
-                        size="sm"
-                        tooltip="Copy"
-                        className="mx-1"
-                        icon={clipboard.copied ? Check : Copy01}
-                        onClick={() => clipboard.copy("npx untitledui@latest add")}
-                    />
-                </div>
-
-                <div className="mt-6 flex items-center gap-3">
-                    <Button
-                        href="https://www.untitledui.com/react/docs/introduction"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        color="link-color"
-                        size="lg"
-                        iconLeading={BookOpen01}
-                    >
-                        Docs
-                    </Button>
-                    <div className="h-px w-4 bg-brand-solid" />
-                    <Button
-                        href="https://www.untitledui.com/react/resources/icons"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        color="link-color"
-                        size="lg"
-                        iconLeading={Cube01}
-                    >
-                        Icons
-                    </Button>
-                    <div className="h-px w-4 bg-brand-solid" />
-                    <Button
-                        href="https://github.com/untitleduico/react/issues/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        color="link-color"
-                        size="lg"
-                        iconLeading={HelpCircle}
-                    >
-                        Help
-                    </Button>
-                </div>
-            </div>
+                <Button
+                    size="sm"
+                    color="secondary"
+                    iconLeading={Plus}
+                    className={cx("absolute top-4 right-4 lg:hidden", hasMessages && "top-3")}
+                    onClick={() => createSession()}
+                >
+                    New
+                </Button>
+            </main>
         </div>
     );
 };

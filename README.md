@@ -28,6 +28,40 @@ Open [http://localhost:5173](http://localhost:5173) with your browser to see the
 
 You can start editing the app by modifying the components in `src/` folder. The page auto-updates as you edit the file.
 
+## Chat app setup
+
+The `/` route is a chat-first UI with:
+- hero input centered before the first message,
+- message thread + bottom composer after chat starts,
+- left sidebar with main actions and chat history.
+
+### Run frontend + backend
+
+In one terminal:
+
+```bash
+npm run backend:dev
+```
+
+In another terminal:
+
+```bash
+npm run dev
+```
+
+The Vite dev server proxies `/api/*` calls to `http://localhost:8787`.
+
+### Environment
+
+Copy `.env.example` to `.env` and update values as needed:
+
+```bash
+cp .env.example .env
+```
+
+`AI_PROVIDER_MODE=mock` is the default and returns mocked assistant answers.  
+To enable a live model later, extend `server/ai/provider.ts` with your chosen AI SDK provider package.
+
 ## Resources
 
 Untitled UI React is built on top of [Untitled UI Figma](https://www.untitledui.com/figma), the world's largest and most popular Figma UI kit and design system. Explore more:
