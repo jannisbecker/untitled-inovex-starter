@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle, MinusCircle, PlusCircle } from "@untitledui/icons";
 import { Header } from "@/components/marketing/header-navigation/header";
 import { Avatar } from "@/components/base/avatar/avatar";
@@ -7,6 +7,7 @@ import { Input } from "@/components/base/input/input";
 import { Toggle } from "@/components/base/toggle/toggle";
 import { RatingStars } from "@/components/foundations/rating-stars";
 import { UntitledLogo } from "@/components/foundations/logo/untitledui-logo";
+import { useTheme } from "@/providers/theme-provider";
 import { cx } from "@/utils/cx";
 
 type Plan = {
@@ -68,15 +69,28 @@ const faqs = [
     },
     { question: "Can I change my plan later?", answer: "Absolutely. You can upgrade or downgrade your plan at any time from your billing settings." },
     { question: "What is your cancellation policy?", answer: "You can cancel at any time. Your current subscription remains active until the billing period ends." },
+    { question: "Can other info be added to an invoice?", answer: "Yes. You can add your tax details, company info, and custom billing notes to invoices." },
     { question: "How does billing work?", answer: "You can choose monthly or annual billing. Annual gives you a lower effective monthly price." },
+    { question: "How do I change my account email?", answer: "Go to account settings and update your email under profile details." },
 ];
 
 export const PricingFigmaPage = () => {
     const [isYearly, setIsYearly] = useState(false);
     const [openFaq, setOpenFaq] = useState(0);
+    const [email, setEmail] = useState("");
+    const { theme, setTheme } = useTheme();
+    const previousThemeRef = useRef(theme);
+
+    useEffect(() => {
+        setTheme("light");
+
+        return () => {
+            setTheme(previousThemeRef.current);
+        };
+    }, [setTheme]);
 
     return (
-        <div className="bg-primary">
+        <div className="bg-primary text-primary">
             <Header isFloating className="sticky top-0 z-40 bg-primary/90 backdrop-blur-sm" />
 
             <section className="mx-auto max-w-container px-8 pt-20 pb-24 text-center">
@@ -137,7 +151,7 @@ export const PricingFigmaPage = () => {
                 })}
             </section>
 
-            <section className="mx-auto max-w-container px-8 py-24">
+            <section className="mx-auto max-w-container px-8 pt-24 pb-10">
                 <div className="mx-auto max-w-3xl text-center">
                     <h3 className="text-display-md font-semibold text-primary">Frequently asked questions</h3>
                     <p className="mt-4 text-xl text-tertiary">Everything you need to know about the product and billing.</p>
@@ -167,6 +181,22 @@ export const PricingFigmaPage = () => {
             </section>
 
             <section className="mx-auto max-w-container px-8 pb-24">
+                <div className="mx-auto mb-16 max-w-3xl rounded-2xl bg-secondary p-10 text-center">
+                    <div className="mx-auto flex w-max items-center -space-x-2">
+                        <Avatar size="md" initials="OR" />
+                        <Avatar size="md" initials="LB" />
+                        <Avatar size="md" initials="AM" />
+                    </div>
+                    <h4 className="mt-5 text-xl font-semibold text-primary">Still have questions?</h4>
+                    <p className="mt-2 text-lg text-tertiary">Can’t find the answer you’re looking for? Please chat to our friendly team.</p>
+                    <Button className="mt-6">Get in touch</Button>
+                </div>
+
+                <div className="mb-10 text-center">
+                    <h3 className="text-display-md font-semibold text-primary">Wall of love</h3>
+                    <p className="mt-3 text-lg text-tertiary">Hear first-hand from our incredible community of customers.</p>
+                </div>
+
                 <div className="grid gap-6 md:grid-cols-3">
                     {["Great support and clean UI components.", "We shipped faster with these building blocks.", "Excellent design quality and DX."].map(
                         (quote, index) => (
@@ -227,7 +257,7 @@ export const PricingFigmaPage = () => {
                         <div>
                             <p className="text-sm font-semibold text-primary_on-brand">Start growing with Untitled</p>
                             <div className="mt-3 flex gap-3">
-                                <Input placeholder="Enter your email" />
+                                <Input placeholder="Enter your email" value={email} onChange={setEmail} />
                                 <Button>Subscribe</Button>
                             </div>
                         </div>
