@@ -1,352 +1,88 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronDown, Plus, SearchLg } from "@untitledui/icons";
+import { CalendarDate } from "@internationalized/date";
 import { Tab, TabList, Tabs } from "@/components/application/tabs/tabs";
 import { HeaderNavigationBase } from "@/components/application/app-navigation/header-navigation";
-import { Button } from "@/components/base/buttons/button";
-import { cx } from "@/utils/cx";
+import { Calendar, type CalendarEvent } from "@/components/application/calendar/calendar";
+import { Input } from "@/components/base/input/input";
+import { SearchLg } from "@untitledui/icons";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Sample Events for January 2027 (matching Figma design) ─────────────────
 
-type EventColor = "blue" | "purple" | "pink" | "green" | "orange" | "yellow" | "indigo";
+const d = (day: number, hour: number, minute = 0) => new Date(2027, 0, day, hour, minute);
 
-interface CalendarEvent {
-    id: string;
-    title: string;
-    time: string;
-    color?: EventColor;
-    hasDot?: boolean;
-    isPill?: boolean;
-}
-
-interface CalendarDay {
-    date: number;
-    month: "prev" | "current" | "next";
-    isToday?: boolean;
-    events: CalendarEvent[];
-    moreCount?: number;
-}
-
-// ─── Event Color Styles ───────────────────────────────────────────────────────
-
-const eventColors: Record<EventColor, { bg: string; text: string; dot: string }> = {
-    blue: {
-        bg: "bg-utility-blue-50",
-        text: "text-utility-blue-700",
-        dot: "bg-utility-blue-500",
-    },
-    purple: {
-        bg: "bg-utility-purple-50",
-        text: "text-utility-purple-700",
-        dot: "bg-utility-purple-500",
-    },
-    indigo: {
-        bg: "bg-utility-indigo-50",
-        text: "text-utility-indigo-700",
-        dot: "bg-utility-indigo-500",
-    },
-    pink: {
-        bg: "bg-utility-pink-50",
-        text: "text-utility-pink-700",
-        dot: "bg-utility-pink-500",
-    },
-    green: {
-        bg: "bg-utility-green-50",
-        text: "text-utility-green-700",
-        dot: "bg-utility-green-500",
-    },
-    orange: {
-        bg: "bg-utility-orange-50",
-        text: "text-utility-orange-700",
-        dot: "bg-utility-orange-500",
-    },
-    yellow: {
-        bg: "bg-utility-yellow-50",
-        text: "text-utility-yellow-700",
-        dot: "bg-utility-yellow-500",
-    },
-};
-
-// ─── Calendar Data ────────────────────────────────────────────────────────────
-
-const calendarWeeks: CalendarDay[][] = [
+const events: CalendarEvent[] = [
     // Week 1: Dec 28 – Jan 3
-    [
-        {
-            date: 28,
-            month: "prev",
-            events: [{ id: "e1", title: "Monday stand...", time: "9:00 AM" }],
-        },
-        {
-            date: 29,
-            month: "prev",
-            events: [
-                { id: "e2", title: "One-on-one...", time: "10:00 AM", color: "pink", isPill: true },
-                { id: "e3", title: "All-hands me...", time: "4:00 PM" },
-                { id: "e4", title: "Dinner with...", time: "6:30 PM", color: "indigo", isPill: true, hasDot: true },
-            ],
-        },
-        {
-            date: 30,
-            month: "prev",
-            events: [
-                { id: "e5", title: "EOY meeting", time: "9:00 AM" },
-                { id: "e6", title: "Coffee with...", time: "11:30 AM", color: "purple", isPill: true },
-                { id: "e7", title: "Marketing sit...", time: "2:30 PM", color: "blue", isPill: true },
-            ],
-            moreCount: 2,
-        },
-        {
-            date: 31,
-            month: "prev",
-            events: [{ id: "e8", title: "Remote brief", time: "10:30 AM", color: "blue", isPill: true }],
-        },
-        {
-            date: 1,
-            month: "current",
-            events: [{ id: "e9", title: "Friday standup", time: "9:00 AM" }],
-        },
-        {
-            date: 2,
-            month: "current",
-            events: [{ id: "e10", title: "House insp...", time: "10:30 AM", color: "orange", isPill: true, hasDot: true }],
-        },
-        { date: 3, month: "current", events: [] },
-    ],
+    { id: "e1",  title: "Monday standup",     start: d(-3, 9),    end: d(-3, 9, 30) },
+    { id: "e2",  title: "One-on-one...",       start: d(-2, 10),   end: d(-2, 11),   color: "pink" },
+    { id: "e3",  title: "All-hands meeting",  start: d(-2, 16),   end: d(-2, 17) },
+    { id: "e4",  title: "Dinner with...",      start: d(-2, 18, 30), end: d(-2, 19, 30), color: "indigo", dot: true },
+    { id: "e5",  title: "EOY meeting",         start: d(-1, 9),    end: d(-1, 10) },
+    { id: "e6",  title: "Coffee with...",      start: d(-1, 11, 30), end: d(-1, 12, 30), color: "purple" },
+    { id: "e7",  title: "Marketing sit...",    start: d(-1, 14, 30), end: d(-1, 15, 30), color: "blue" },
+    { id: "e8",  title: "Team sync",           start: d(-1, 10, 30), end: d(-1, 11, 30), color: "gray" },
+    { id: "e9",  title: "Design review",       start: d(-1, 15, 30), end: d(-1, 16, 30), color: "purple" },
+    { id: "e10", title: "Remote brief",        start: new Date(2026, 11, 31, 10, 30), end: new Date(2026, 11, 31, 11, 30), color: "blue" },
+    { id: "e11", title: "Friday standup",      start: d(1, 9),     end: d(1, 9, 30) },
+    { id: "e12", title: "House insp...",        start: d(2, 10, 30), end: d(2, 11, 30), color: "orange", dot: true },
+
     // Week 2: Jan 4–10
-    [
-        {
-            date: 4,
-            month: "current",
-            events: [
-                { id: "e11", title: "Monday stand...", time: "9:00 AM" },
-                { id: "e12", title: "Content plan...", time: "11:00 AM", color: "purple", isPill: true },
-            ],
-        },
-        {
-            date: 5,
-            month: "current",
-            events: [
-                { id: "e13", title: "One-on-one...", time: "10:00 AM", color: "pink", isPill: true },
-                { id: "e14", title: "Catch up w/ A...", time: "2:30 PM" },
-            ],
-        },
-        {
-            date: 6,
-            month: "current",
-            events: [
-                { id: "e15", title: "Deep work", time: "9:00 AM", color: "blue", isPill: true },
-                { id: "e16", title: "Design sync", time: "10:30 AM" },
-                { id: "e17", title: "SEO planning", time: "1:30 PM", color: "blue", isPill: true },
-            ],
-            moreCount: 3,
-        },
-        {
-            date: 7,
-            month: "current",
-            events: [{ id: "e18", title: "Lunch with...", time: "12:00 PM", color: "green", isPill: true, hasDot: true }],
-        },
-        {
-            date: 8,
-            month: "current",
-            isToday: true,
-            events: [
-                { id: "e19", title: "Friday standup", time: "9:00 AM" },
-                { id: "e20", title: "Olivia x Riley", time: "10:00 AM", color: "purple", isPill: true },
-                { id: "e21", title: "Product demo", time: "1:30 PM", color: "blue", isPill: true },
-            ],
-            moreCount: 2,
-        },
-        {
-            date: 9,
-            month: "current",
-            events: [{ id: "e22", title: "House insp...", time: "11:00 AM", color: "orange", isPill: true, hasDot: true }],
-        },
-        {
-            date: 10,
-            month: "current",
-            events: [{ id: "e23", title: "Ava's engag...", time: "1:00 PM", color: "purple", isPill: true, hasDot: true }],
-        },
-    ],
+    { id: "e13", title: "Monday standup",      start: d(4, 9),     end: d(4, 9, 30) },
+    { id: "e14", title: "Content plan...",     start: d(4, 11),    end: d(4, 12),    color: "purple" },
+    { id: "e15", title: "One-on-one...",        start: d(5, 10),    end: d(5, 11),    color: "pink" },
+    { id: "e16", title: "Catch up w/ A...",    start: d(5, 14, 30), end: d(5, 15, 30) },
+    { id: "e17", title: "Deep work",           start: d(6, 9),     end: d(6, 10),    color: "blue" },
+    { id: "e18", title: "Design sync",         start: d(6, 10, 30), end: d(6, 11, 30) },
+    { id: "e19", title: "SEO planning",        start: d(6, 13, 30), end: d(6, 14, 30), color: "blue" },
+    { id: "e20", title: "Investor call",       start: d(6, 15),    end: d(6, 16),    color: "gray" },
+    { id: "e21", title: "Sprint planning",     start: d(6, 16),    end: d(6, 17),    color: "brand" },
+    { id: "e22", title: "Onboarding call",     start: d(6, 8),     end: d(6, 9),     color: "green" },
+    { id: "e23", title: "Lunch with...",        start: d(7, 12),    end: d(7, 13),    color: "green", dot: true },
+    { id: "e24", title: "Friday standup",      start: d(8, 9),     end: d(8, 9, 30) },
+    { id: "e25", title: "Olivia x Riley",      start: d(8, 10),    end: d(8, 11),    color: "purple" },
+    { id: "e26", title: "Product demo",        start: d(8, 13, 30), end: d(8, 14, 30), color: "blue" },
+    { id: "e27", title: "Team huddle",         start: d(8, 11),    end: d(8, 12),    color: "gray" },
+    { id: "e28", title: "Design review",       start: d(8, 15),    end: d(8, 16),    color: "indigo" },
+    { id: "e29", title: "House insp...",        start: d(9, 11),    end: d(9, 12),    color: "orange", dot: true },
+    { id: "e30", title: "Ava's engag...",       start: d(10, 13),   end: d(10, 14),   color: "purple", dot: true },
+
     // Week 3: Jan 11–17
-    [
-        {
-            date: 11,
-            month: "current",
-            events: [
-                { id: "e24", title: "Monday stand...", time: "9:00 AM" },
-                { id: "e25", title: "Team lunch", time: "12:15 PM", color: "pink", isPill: true },
-            ],
-        },
-        { date: 12, month: "current", events: [] },
-        {
-            date: 13,
-            month: "current",
-            events: [{ id: "e26", title: "Product plann...", time: "9:30 AM", color: "blue", isPill: true }],
-        },
-        {
-            date: 14,
-            month: "current",
-            events: [
-                { id: "e27", title: "Amélie's first...", time: "10:00 AM", color: "purple", isPill: true },
-                { id: "e28", title: "All-hands me...", time: "4:00 PM" },
-            ],
-        },
-        {
-            date: 15,
-            month: "current",
-            events: [
-                { id: "e29", title: "Friday standup", time: "9:00 AM" },
-                { id: "e30", title: "Coffee w/ Am...", time: "9:30 AM" },
-                { id: "e31", title: "Design feedb...", time: "2:30 PM", color: "blue", isPill: true },
-            ],
-            moreCount: 1,
-        },
-        {
-            date: 16,
-            month: "current",
-            events: [{ id: "e32", title: "Half marath...", time: "7:00 AM", color: "green", isPill: true, hasDot: true }],
-        },
-        { date: 17, month: "current", events: [] },
-    ],
+    { id: "e31", title: "Monday standup",      start: d(11, 9),    end: d(11, 9, 30) },
+    { id: "e32", title: "Team lunch",          start: d(11, 12, 15), end: d(11, 13, 15), color: "pink" },
+    { id: "e33", title: "Product plann...",    start: d(13, 9, 30), end: d(13, 10, 30), color: "blue" },
+    { id: "e34", title: "Amélie's first...",   start: d(14, 10),   end: d(14, 11),   color: "purple" },
+    { id: "e35", title: "All-hands me...",     start: d(14, 16),   end: d(14, 17) },
+    { id: "e36", title: "Friday standup",      start: d(15, 9),    end: d(15, 9, 30) },
+    { id: "e37", title: "Coffee w/ Am...",     start: d(15, 9, 30), end: d(15, 10, 30) },
+    { id: "e38", title: "Design feedb...",     start: d(15, 14, 30), end: d(15, 15, 30), color: "blue" },
+    { id: "e39", title: "UX research",         start: d(15, 11),   end: d(15, 12),   color: "indigo" },
+    { id: "e40", title: "Half marath...",      start: d(16, 7),    end: d(16, 10),   color: "green", dot: true },
+
     // Week 4: Jan 18–24
-    [
-        {
-            date: 18,
-            month: "current",
-            events: [
-                { id: "e33", title: "Monday stand...", time: "9:00 AM" },
-                { id: "e34", title: "Deep work", time: "9:15 AM", color: "blue", isPill: true },
-            ],
-        },
-        {
-            date: 19,
-            month: "current",
-            events: [
-                { id: "e35", title: "Quarterly rev...", time: "11:30 AM", color: "orange", isPill: true },
-                { id: "e36", title: "Lunch with Za...", time: "1:00 PM" },
-                { id: "e37", title: "Dinner with...", time: "7:00 PM", color: "green", isPill: true, hasDot: true },
-            ],
-        },
-        {
-            date: 20,
-            month: "current",
-            events: [
-                { id: "e38", title: "Deep work", time: "9:00 AM", color: "blue", isPill: true },
-                { id: "e39", title: "Design sync", time: "2:30 PM" },
-            ],
-        },
-        {
-            date: 21,
-            month: "current",
-            events: [{ id: "e40", title: "Amélie coffee", time: "10:00 AM", color: "purple", isPill: true }],
-        },
-        {
-            date: 22,
-            month: "current",
-            events: [
-                { id: "e41", title: "Friday standup", time: "9:00 AM" },
-                { id: "e42", title: "Accountant", time: "1:45 PM", color: "yellow", isPill: true },
-                { id: "e43", title: "Marketing sit...", time: "2:30 PM", color: "blue", isPill: true },
-            ],
-            moreCount: 3,
-        },
-        { date: 23, month: "current", events: [] },
-        { date: 24, month: "current", events: [] },
-    ],
+    { id: "e41", title: "Monday standup",      start: d(18, 9),    end: d(18, 9, 30) },
+    { id: "e42", title: "Deep work",           start: d(18, 9, 15), end: d(18, 11, 15), color: "blue" },
+    { id: "e43", title: "Quarterly rev...",    start: d(19, 11, 30), end: d(19, 12, 30), color: "orange" },
+    { id: "e44", title: "Lunch with Za...",    start: d(19, 13),   end: d(19, 14) },
+    { id: "e45", title: "Dinner with...",      start: d(19, 19),   end: d(19, 20),   color: "green", dot: true },
+    { id: "e46", title: "Deep work",           start: d(20, 9),    end: d(20, 10),   color: "blue" },
+    { id: "e47", title: "Design sync",         start: d(20, 14, 30), end: d(20, 15, 30) },
+    { id: "e48", title: "Amélie coffee",       start: d(21, 10),   end: d(21, 11),   color: "purple" },
+    { id: "e49", title: "Friday standup",      start: d(22, 9),    end: d(22, 9, 30) },
+    { id: "e50", title: "Accountant",          start: d(22, 13, 45), end: d(22, 14, 45), color: "yellow" },
+    { id: "e51", title: "Marketing sit...",    start: d(22, 14, 30), end: d(22, 15, 30), color: "blue" },
+    { id: "e52", title: "Board meeting",       start: d(22, 10),   end: d(22, 11),   color: "gray" },
+    { id: "e53", title: "User interviews",     start: d(22, 11),   end: d(22, 12),   color: "indigo" },
+    { id: "e54", title: "Sprint retro",        start: d(22, 15, 30), end: d(22, 16, 30), color: "brand" },
+
     // Week 5: Jan 25–31
-    [
-        {
-            date: 25,
-            month: "current",
-            events: [{ id: "e44", title: "Monday stand...", time: "9:00 AM" }],
-        },
-        {
-            date: 26,
-            month: "current",
-            events: [
-                { id: "e45", title: "Content plan...", time: "11:00 AM", color: "purple", isPill: true },
-                { id: "e46", title: "Lunch with A...", time: "12:45 AM" },
-            ],
-        },
-        {
-            date: 27,
-            month: "current",
-            events: [{ id: "e47", title: "Product plann...", time: "9:30 AM", color: "blue", isPill: true }],
-        },
-        {
-            date: 28,
-            month: "current",
-            events: [
-                { id: "e48", title: "All-hands me...", time: "4:00 PM" },
-                { id: "e49", title: "Team dinner", time: "5:30 PM", color: "pink", isPill: true },
-            ],
-        },
-        {
-            date: 29,
-            month: "current",
-            events: [{ id: "e50", title: "Friday standup", time: "9:00 AM" }],
-        },
-        { date: 30, month: "current", events: [] },
-        {
-            date: 31,
-            month: "current",
-            events: [{ id: "e51", title: "Drive to Sydney", time: "", color: "orange", isPill: true, hasDot: true }],
-        },
-    ],
+    { id: "e55", title: "Monday standup",      start: d(25, 9),    end: d(25, 9, 30) },
+    { id: "e56", title: "Content plan...",     start: d(26, 11),   end: d(26, 12),   color: "purple" },
+    { id: "e57", title: "Lunch with A...",     start: d(26, 12, 45), end: d(26, 13, 45) },
+    { id: "e58", title: "Product plann...",    start: d(27, 9, 30), end: d(27, 10, 30), color: "blue" },
+    { id: "e59", title: "All-hands me...",     start: d(28, 16),   end: d(28, 17) },
+    { id: "e60", title: "Team dinner",         start: d(28, 17, 30), end: d(28, 18, 30), color: "pink" },
+    { id: "e61", title: "Friday standup",      start: d(29, 9),    end: d(29, 9, 30) },
+    { id: "e62", title: "Drive to Sydney",     start: d(31, 8),    end: d(31, 20),   color: "orange", dot: true },
 ];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-const CalendarEventItem = ({ event }: { event: CalendarEvent }) => {
-    if (!event.color || !event.isPill) {
-        return (
-            <div className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-secondary">
-                <span className="truncate">{event.title}</span>
-                {event.time && <span className="shrink-0 text-tertiary">{event.time}</span>}
-            </div>
-        );
-    }
-
-    const colors = eventColors[event.color];
-
-    return (
-        <div className={cx("flex min-w-0 items-center gap-1 truncate rounded-md px-1.5 py-0.5 text-xs font-medium", colors.bg, colors.text)}>
-            {event.hasDot && <span className={cx("size-1.5 shrink-0 rounded-full", colors.dot)} />}
-            <span className="truncate">{event.title}</span>
-            {event.time && <span className="shrink-0 opacity-80">{event.time}</span>}
-        </div>
-    );
-};
-
-const CalendarDayCell = ({ day }: { day: CalendarDay }) => {
-    const isCurrentMonth = day.month === "current";
-
-    return (
-        <div className={cx("flex min-h-28 flex-col border-b border-r border-secondary p-1.5 last:border-r-0", !isCurrentMonth && "bg-secondary/30")}>
-            <div className="mb-1 flex items-center justify-between">
-                <span
-                    className={cx(
-                        "flex size-6 items-center justify-center rounded-full text-xs font-semibold",
-                        day.isToday ? "bg-brand-solid text-white" : isCurrentMonth ? "text-secondary" : "text-quaternary",
-                    )}
-                >
-                    {day.date}
-                </span>
-            </div>
-
-            <div className="flex flex-col gap-0.5 overflow-hidden">
-                {day.events.map((event) => (
-                    <CalendarEventItem key={event.id} event={event} />
-                ))}
-                {day.moreCount && (
-                    <button className="self-start text-xs font-medium text-tertiary hover:text-secondary">
-                        {day.moreCount} more...
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-};
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
@@ -359,19 +95,10 @@ const navItems = [
     { label: "Users", href: "/users" },
 ];
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const CalendarPage = () => {
-    const [activeTab, setActiveTab] = useState("All events");
-
-    const tabs = [
-        { id: "All events", children: "All events" },
-        { id: "Shared", children: "Shared" },
-        { id: "Public", children: "Public" },
-        { id: "Archived", children: "Archived" },
-    ];
-
-    const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const [activeTab, setActiveTab] = useState("all-events");
 
     return (
         <div className="flex min-h-screen flex-col bg-primary">
@@ -383,22 +110,26 @@ export const CalendarPage = () => {
                     <div className="mx-auto w-full max-w-container px-8 pt-6 pb-0">
                         <div className="flex items-center justify-between gap-4 pb-5">
                             <h1 className="text-xl font-semibold text-primary">My calendar</h1>
-                            <div className="relative flex items-center rounded-lg border border-primary bg-primary px-3 py-2 shadow-xs">
-                                <SearchLg className="mr-2 size-4 text-quaternary" aria-hidden />
-                                <span className="text-sm text-placeholder">Search</span>
-                                <kbd className="ml-8 flex items-center gap-0.5 rounded border border-secondary px-1.5 py-0.5 text-xs text-tertiary">
-                                    ⌘K
-                                </kbd>
-                            </div>
+
+                            {/* Search with ⌘K shortcut — Code Connect: Input size="sm" type="Search" shortcut={true} */}
+                            <Input
+                                size="sm"
+                                placeholder="Search"
+                                icon={SearchLg}
+                                shortcut
+                                className="w-72"
+                                aria-label="Search calendar"
+                            />
                         </div>
 
+                        {/* Tabs — Code Connect: Tabs type="Underline" size="sm" fullWidth="False" */}
                         <Tabs selectedKey={activeTab} onSelectionChange={(key) => setActiveTab(String(key))}>
-                            <TabList
-                                size="sm"
-                                type="underline"
-                                items={tabs}
-                                className="-mb-px before:hidden"
-                            />
+                            <TabList size="sm" type="underline" className="-mb-px before:hidden">
+                                <Tab id="all-events">All events</Tab>
+                                <Tab id="shared">Shared</Tab>
+                                <Tab id="public">Public</Tab>
+                                <Tab id="archived">Archived</Tab>
+                            </TabList>
                         </Tabs>
                     </div>
                 </div>
@@ -406,74 +137,12 @@ export const CalendarPage = () => {
                 {/* Calendar Section */}
                 <div className="flex flex-1 flex-col">
                     <div className="mx-auto w-full max-w-container px-8 py-6">
-                        <div className="overflow-hidden rounded-xl border border-secondary shadow-xs">
-                            {/* Calendar Header */}
-                            <div className="flex items-center justify-between border-b border-secondary px-4 py-3.5">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex flex-col items-center rounded-lg border border-secondary px-2.5 py-1.5 text-center shadow-xs">
-                                        <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-secondary">JAN</span>
-                                        <span className="text-xl font-bold text-primary leading-tight">8</span>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-lg font-bold text-primary">January 2027</span>
-                                            <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary">
-                                                Week 1
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-tertiary">Jan 1, 2027 – Jan 31, 2027</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button className="flex size-8 items-center justify-center rounded-lg border border-secondary text-quaternary hover:bg-primary_hover hover:text-secondary transition duration-100 ease-linear shadow-xs">
-                                        <SearchLg className="size-4" aria-hidden />
-                                    </button>
-
-                                    <div className="flex items-center rounded-lg border border-secondary shadow-xs overflow-hidden">
-                                        <button className="flex size-8 items-center justify-center text-quaternary hover:bg-primary_hover hover:text-secondary transition duration-100 ease-linear border-r border-secondary">
-                                            <ArrowLeft className="size-4" aria-hidden />
-                                        </button>
-                                        <button className="px-3 py-1.5 text-sm font-semibold text-secondary hover:bg-primary_hover transition duration-100 ease-linear">
-                                            Today
-                                        </button>
-                                        <button className="flex size-8 items-center justify-center text-quaternary hover:bg-primary_hover hover:text-secondary transition duration-100 ease-linear border-l border-secondary">
-                                            <ArrowRight className="size-4" aria-hidden />
-                                        </button>
-                                    </div>
-
-                                    <button className="flex items-center gap-1.5 rounded-lg border border-secondary px-3 py-1.5 text-sm font-semibold text-secondary shadow-xs hover:bg-primary_hover transition duration-100 ease-linear">
-                                        Month view
-                                        <ChevronDown className="size-4 text-quaternary" aria-hidden />
-                                    </button>
-
-                                    <Button size="sm" color="primary" iconLeading={Plus}>
-                                        Add event
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Day Headers */}
-                            <div className="grid grid-cols-7 border-b border-secondary">
-                                {weekDays.map((day) => (
-                                    <div
-                                        key={day}
-                                        className="border-r border-secondary py-2.5 text-center text-xs font-medium text-tertiary last:border-r-0"
-                                    >
-                                        {day}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Calendar Grid */}
-                            {calendarWeeks.map((week, weekIndex) => (
-                                <div key={weekIndex} className="grid grid-cols-7 last:[&>div]:border-b-0">
-                                    {week.map((day) => (
-                                        <CalendarDayCell key={`${day.month}-${day.date}`} day={day} />
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
+                        {/* Calendar component — installed via Untitled UI MCP: npx untitledui add calendar */}
+                        <Calendar
+                            events={events}
+                            view="month"
+                            initialDate={new CalendarDate(2027, 1, 8)}
+                        />
                     </div>
                 </div>
             </main>
