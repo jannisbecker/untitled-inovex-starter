@@ -1,3 +1,8 @@
+---
+description: 
+alwaysApply: true
+---
+
 ## Project Overview
 
 This is an **Untitled UI React** component library project built with:
@@ -332,6 +337,35 @@ Select.ComboBox = ComboBox;
 - `src/styles/typography.css` - Typography styles
 
 ## Best Practices for AI Assistance
+
+### Figma-to-Code Implementation Rules (CRITICAL)
+
+When implementing UI from Figma in this repository, follow these rules strictly:
+
+1. **Prefer existing Untitled UI components first**
+   - Reuse components already present in `src/components/**` before creating custom UI.
+   - Check what is already available in the repo (especially `src/components/base`, `src/components/application`, `src/components/marketing`, `src/components/foundations`).
+
+2. **Cross-check with Untitled MCP component catalog**
+   - Use the Untitled MCP tools to verify which components/templates exist upstream.
+   - Treat MCP search results as a source of truth for available component names and installability.
+
+3. **Use Figma Code Connect context as implementation input**
+   - Query Figma MCP `get_design_context` and `get_context_for_code_connect` for the selected node.
+   - If `CodeConnectSnippet` data is returned, use those mapped components and props as the primary guide.
+   - Note: Code Connect may be incomplete or unavailable for some nodes. In that case, fall back to repository components and design context.
+
+4. **Match component variants/props, not only appearance**
+   - At the end of implementing a Figma design, verify that chosen component props are as close as possible to Figma variants/properties.
+   - Examples: size, hierarchy/color, state, icon presence, variant options, supporting text toggles, etc.
+   - Do not rely only on visual parity; ensure semantic/component parity too.
+
+5. **End-of-task verification workflow for Figma implementations**
+   - Re-check Figma Code Connect endpoint after implementation to validate variant/property choices.
+   - Then run a browser-based visual comparison (screenshot/snapshot) between implemented page and Figma frame.
+   - Report both:
+     - component/prop parity status
+     - visual parity status and remaining deltas
 
 ### When Adding New Components
 
