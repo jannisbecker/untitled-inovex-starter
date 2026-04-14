@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle, MinusCircle, PlusCircle } from "@untitledui/icons";
+import { Tab, TabList, TabPanel, Tabs } from "@/components/application/tabs/tabs";
 import { Header } from "@/components/marketing/header-navigation/header";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
-import { Toggle } from "@/components/base/toggle/toggle";
 import { RatingStars } from "@/components/foundations/rating-stars";
 import { UntitledLogo } from "@/components/foundations/logo/untitledui-logo";
 import { useTheme } from "@/providers/theme-provider";
-import { cx } from "@/utils/cx";
 
 type Plan = {
     name: string;
@@ -75,7 +74,7 @@ const faqs = [
 ];
 
 export const PricingFigmaPage = () => {
-    const [isYearly, setIsYearly] = useState(false);
+    const [billingCycle, setBillingCycle] = useState("monthly");
     const [openFaq, setOpenFaq] = useState(0);
     const [email, setEmail] = useState("");
     const { theme, setTheme } = useTheme();
@@ -98,16 +97,21 @@ export const PricingFigmaPage = () => {
                 <h1 className="mt-3 text-display-lg font-semibold tracking-[-0.02em] text-primary">Simple, transparent pricing</h1>
                 <p className="mx-auto mt-5 max-w-3xl text-xl text-tertiary">We believe Untitled should be accessible to all companies, no matter the size.</p>
 
-                <div className="mx-auto mt-10 inline-flex items-center gap-3 rounded-xl border border-secondary bg-secondary px-4 py-1.5">
-                    <span className={cx("text-md font-semibold", !isYearly ? "text-primary" : "text-quaternary")}>Monthly billing</span>
-                    <Toggle size="md" isSelected={isYearly} onChange={setIsYearly} />
-                    <span className={cx("text-md font-semibold", isYearly ? "text-primary" : "text-quaternary")}>Annual billing</span>
+                <div className="mx-auto mt-10 w-max">
+                    <Tabs selectedKey={billingCycle} onSelectionChange={(key) => setBillingCycle(String(key))}>
+                        <TabList type="button-border" size="md" className="w-max">
+                            <Tab id="monthly">Monthly billing</Tab>
+                            <Tab id="yearly">Annual billing</Tab>
+                        </TabList>
+                        <TabPanel id="monthly" className="hidden" />
+                        <TabPanel id="yearly" className="hidden" />
+                    </Tabs>
                 </div>
             </section>
 
             <section className="mx-auto grid max-w-container gap-8 px-8 pb-24 lg:grid-cols-3">
                 {plans.map((plan) => {
-                    const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+                    const price = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
 
                     return (
                         <article key={plan.name} className="overflow-hidden rounded-2xl border border-secondary_alt bg-primary shadow-lg">
@@ -126,10 +130,10 @@ export const PricingFigmaPage = () => {
                                 </div>
                                 <p className="text-md text-tertiary">{plan.description}</p>
                                 <div className="space-y-3">
-                                    <Button size="lg" className="w-full">
+                                    <Button size="md" className="w-full">
                                         Get started
                                     </Button>
-                                    <Button color="secondary" size="lg" className="w-full">
+                                    <Button color="secondary" size="md" className="w-full">
                                         Chat to sales
                                     </Button>
                                 </div>
@@ -189,7 +193,9 @@ export const PricingFigmaPage = () => {
                     </div>
                     <h4 className="mt-5 text-xl font-semibold text-primary">Still have questions?</h4>
                     <p className="mt-2 text-lg text-tertiary">Can’t find the answer you’re looking for? Please chat to our friendly team.</p>
-                    <Button className="mt-6">Get in touch</Button>
+                    <Button size="md" className="mt-6">
+                        Get in touch
+                    </Button>
                 </div>
 
                 <div className="mb-10 text-center">
@@ -221,10 +227,10 @@ export const PricingFigmaPage = () => {
                     <h3 className="text-display-md font-semibold text-primary">Start your 30-day free trial</h3>
                     <p className="mt-4 text-xl text-tertiary">Join over 4,000+ startups already growing with Untitled.</p>
                     <div className="mt-8 flex flex-wrap gap-3">
-                        <Button color="secondary" size="lg">
+                        <Button color="secondary" size="md">
                             Learn more
                         </Button>
-                        <Button size="lg">Get started</Button>
+                        <Button size="md">Get started</Button>
                     </div>
                 </div>
             </section>
@@ -273,7 +279,7 @@ export const PricingFigmaPage = () => {
                                     wrapperClassName="bg-primary text-primary_on-brand ring-secondary_alt"
                                     inputClassName="text-primary_on-brand placeholder:text-tertiary_on-brand"
                                 />
-                                <Button>Subscribe</Button>
+                                <Button size="md">Subscribe</Button>
                             </div>
                         </div>
                     </div>
