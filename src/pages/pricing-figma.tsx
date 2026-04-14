@@ -3,6 +3,7 @@ import { CheckCircle, MinusCircle, PlusCircle } from "@untitledui/icons";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/application/tabs/tabs";
 import { Header } from "@/components/marketing/header-navigation/header";
 import { Avatar } from "@/components/base/avatar/avatar";
+import { Badge } from "@/components/base/badges/badges";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { RatingStars } from "@/components/foundations/rating-stars";
@@ -119,9 +120,9 @@ export const PricingFigmaPage = () => {
                                 <div className="flex items-start justify-between gap-4">
                                     <h2 className="text-lg font-semibold text-primary">{plan.name}</h2>
                                     {plan.highlighted && (
-                                        <span className="rounded-full border border-brand bg-brand-secondary px-3 py-1 text-sm font-medium text-brand-secondary">
+                                        <Badge type="pill-color" size="lg" color="brand">
                                             Popular
-                                        </span>
+                                        </Badge>
                                     )}
                                 </div>
                                 <div className="flex items-end gap-1">
