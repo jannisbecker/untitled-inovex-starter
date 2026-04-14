@@ -93,15 +93,15 @@ export const PricingFigmaPage = () => {
         <div className="bg-primary text-primary">
             <Header isFloating className="sticky top-0 z-40 bg-primary/90 backdrop-blur-sm" />
 
-            <section className="mx-auto max-w-container px-8 pt-20 pb-24 text-center">
+            <section className="mx-auto max-w-container px-8 pt-24 pb-24 text-center">
                 <p className="text-md font-semibold text-brand-secondary">Pricing</p>
-                <h1 className="mt-3 text-display-lg font-semibold text-primary">Simple, transparent pricing</h1>
-                <p className="mx-auto mt-4 max-w-3xl text-xl text-tertiary">We believe Untitled should be accessible to all companies, no matter the size.</p>
+                <h1 className="mt-3 text-display-lg font-semibold tracking-[-0.02em] text-primary">Simple, transparent pricing</h1>
+                <p className="mx-auto mt-5 max-w-3xl text-xl text-tertiary">We believe Untitled should be accessible to all companies, no matter the size.</p>
 
-                <div className="mx-auto mt-8 inline-flex items-center gap-3 rounded-xl border border-secondary bg-secondary px-4 py-2">
-                    <span className={cx("text-md font-semibold", !isYearly ? "text-primary" : "text-tertiary")}>Monthly billing</span>
+                <div className="mx-auto mt-10 inline-flex items-center gap-3 rounded-xl border border-secondary bg-secondary px-4 py-1.5">
+                    <span className={cx("text-md font-semibold", !isYearly ? "text-primary" : "text-quaternary")}>Monthly billing</span>
                     <Toggle size="md" isSelected={isYearly} onChange={setIsYearly} />
-                    <span className={cx("text-md font-semibold", isYearly ? "text-primary" : "text-tertiary")}>Annual billing</span>
+                    <span className={cx("text-md font-semibold", isYearly ? "text-primary" : "text-quaternary")}>Annual billing</span>
                 </div>
             </section>
 
@@ -110,8 +110,8 @@ export const PricingFigmaPage = () => {
                     const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
 
                     return (
-                        <article key={plan.name} className="rounded-2xl border border-secondary bg-primary shadow-lg">
-                            <div className="space-y-6 border-b border-secondary p-8">
+                        <article key={plan.name} className="overflow-hidden rounded-2xl border border-secondary_alt bg-primary shadow-lg">
+                            <div className="space-y-7 border-b border-secondary p-8">
                                 <div className="flex items-start justify-between gap-4">
                                     <h2 className="text-lg font-semibold text-primary">{plan.name}</h2>
                                     {plan.highlighted && (
@@ -121,7 +121,7 @@ export const PricingFigmaPage = () => {
                                     )}
                                 </div>
                                 <div className="flex items-end gap-1">
-                                    <p className="text-display-xl font-semibold text-primary">${price}</p>
+                                    <p className="text-display-xl font-semibold tracking-[-0.02em] text-primary">${price}</p>
                                     <p className="pb-2 text-md text-tertiary">per month</p>
                                 </div>
                                 <p className="text-md text-tertiary">{plan.description}</p>
@@ -135,7 +135,7 @@ export const PricingFigmaPage = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 p-8">
+                            <div className="space-y-4 px-8 pt-8 pb-10">
                                 <p className="text-md font-semibold text-primary">FEATURES</p>
                                 <ul className="space-y-4">
                                     {plan.features.map((feature) => (
@@ -151,7 +151,7 @@ export const PricingFigmaPage = () => {
                 })}
             </section>
 
-            <section className="mx-auto max-w-container px-8 pt-24 pb-10">
+            <section className="mx-auto max-w-container px-8 pt-20 pb-10">
                 <div className="mx-auto max-w-3xl text-center">
                     <h3 className="text-display-md font-semibold text-primary">Frequently asked questions</h3>
                     <p className="mt-4 text-xl text-tertiary">Everything you need to know about the product and billing.</p>
@@ -165,7 +165,7 @@ export const PricingFigmaPage = () => {
                                 type="button"
                                 key={faq.question}
                                 onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                                className="w-full py-6 text-left"
+                                className="w-full py-7 text-left"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
@@ -181,7 +181,7 @@ export const PricingFigmaPage = () => {
             </section>
 
             <section className="mx-auto max-w-container px-8 pb-24">
-                <div className="mx-auto mb-16 max-w-3xl rounded-2xl bg-secondary p-10 text-center">
+                <div className="mx-auto mb-16 max-w-3xl rounded-2xl bg-secondary px-10 py-9 text-center">
                     <div className="mx-auto flex w-max items-center -space-x-2">
                         <Avatar size="md" initials="OR" />
                         <Avatar size="md" initials="LB" />
@@ -200,7 +200,7 @@ export const PricingFigmaPage = () => {
                 <div className="grid gap-6 md:grid-cols-3">
                     {["Great support and clean UI components.", "We shipped faster with these building blocks.", "Excellent design quality and DX."].map(
                         (quote, index) => (
-                            <article key={quote} className="rounded-2xl border border-secondary bg-secondary p-6">
+                            <article key={quote} className="rounded-2xl border border-secondary bg-primary p-6">
                                 <RatingStars rating={5} className="gap-1" />
                                 <p className="mt-4 text-md text-primary">{quote}</p>
                                 <div className="mt-6 flex items-center gap-3">
@@ -217,7 +217,7 @@ export const PricingFigmaPage = () => {
             </section>
 
             <section className="mx-auto max-w-container px-8 pb-24">
-                <div className="rounded-2xl bg-secondary p-12">
+                <div className="rounded-2xl bg-secondary px-16 py-12">
                     <h3 className="text-display-md font-semibold text-primary">Start your 30-day free trial</h3>
                     <p className="mt-4 text-xl text-tertiary">Join over 4,000+ startups already growing with Untitled.</p>
                     <div className="mt-8 flex flex-wrap gap-3">
@@ -237,6 +237,14 @@ export const PricingFigmaPage = () => {
                             <p className="mt-4 max-w-sm text-md text-tertiary_on-brand">
                                 Design amazing digital experiences that create more happy in the world.
                             </p>
+                            <div className="mt-5 inline-flex items-center gap-3 rounded-full border border-secondary_alt bg-primary_alt px-3 py-1.5">
+                                <div className="flex -space-x-1">
+                                    <Avatar size="xs" initials="AC" />
+                                    <Avatar size="xs" initials="RF" />
+                                    <Avatar size="xs" initials="LP" />
+                                </div>
+                                <p className="text-xs font-medium text-secondary_on-brand">Join 2,000+ companies</p>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-6 text-sm text-tertiary_on-brand">
                             <div className="space-y-2">
@@ -244,6 +252,7 @@ export const PricingFigmaPage = () => {
                                 <p>Overview</p>
                                 <p>Features</p>
                                 <p>Solutions</p>
+                                <p>Tutorials</p>
                                 <p>Pricing</p>
                             </div>
                             <div className="space-y-2">
@@ -257,7 +266,13 @@ export const PricingFigmaPage = () => {
                         <div>
                             <p className="text-sm font-semibold text-primary_on-brand">Start growing with Untitled</p>
                             <div className="mt-3 flex gap-3">
-                                <Input placeholder="Enter your email" value={email} onChange={setEmail} />
+                                <Input
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={setEmail}
+                                    wrapperClassName="bg-primary text-primary_on-brand ring-secondary_alt"
+                                    inputClassName="text-primary_on-brand placeholder:text-tertiary_on-brand"
+                                />
                                 <Button>Subscribe</Button>
                             </div>
                         </div>
